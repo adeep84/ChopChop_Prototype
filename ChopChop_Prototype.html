@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChopChop: Logistics Carbon Emissions & Green Project Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(to bottom right, #1a202c, #0d3b3b); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 1.5rem; overflow-y: auto; }
+        ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #2d3748; } ::-webkit-scrollbar-thumb { background: #2c9393; border-radius: 10px; }
+        .tab-button { transition: all 0.2s ease-in-out; }
+        .tab-button.active { background-color: #2d3748; color: #4fd1c5; border-color: #4fd1c5; transform: translateY(1px); }
+        .tab-button.inactive { background-color: #1a202c; color: #a0aec0; border-color: #2d3748; opacity: 0.8; }
+        #calculatorContent { background-color: #e0f2f2; color: #333; border-radius: 0 0 0.75rem 0.75rem; padding: 2.5rem; }
+        .input-field-light, .select-field-light { background-color: #f5f5f5; border-color: #e0e0e0; color: #333; padding: 0.8rem 1.2rem; border-radius: 0.5rem; border-width: 1px; }
+        .input-field-light:focus, .select-field-light:focus { outline: none; border-color: #6a5acd; box-shadow: 0 0 0 2px rgba(106, 90, 205, 0.3); }
+        .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #6a5acd; }
+        input:checked + .slider:before { transform: translateX(20px); }
+        .message-box { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 1rem 2rem; border-radius: 0.5rem; color: white; font-weight: 600; z-index: 1000; opacity: 0; transition: opacity 0.3s, top 0.3s; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .message-box.show { opacity: 1; top: 40px; }
+        .input-field, .select-field { background-color: #2d3748; border-color: #2c9393; color: #e2e8f0; padding: 0.75rem 1rem; border-width: 1px; transition: border-color 0.2s, box-shadow 0.2s; -webkit-appearance: none; -moz-appearance: none; appearance: none; }
+        .select-field { background-image: url('data:image/svg+xml;utf8,<svg fill="%23e2e8f0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.5em; }
+        .weight-warning { color: #dc2626; font-weight: 500; font-size: 0.875rem; height: 1.25rem; }
+        .input-error { border-color: #dc2626 !important; }
+    </style>
+</head>
+<body class="font-inter">
+    <div id="messageBox" class="message-box"></div>
+    <div class="bg-gray-900 text-white p-8 md:p-10 rounded-xl shadow-2xl w-full max-w-5xl border-2 border-teal-600">
+        <div class="flex flex-col items-center mb-8">
+            <svg class="w-20 h-20 text-teal-500 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <h1 class="text-4xl md:text-5xl font-bold text-teal-400 text-center">ChopChop</h1>
+            <p class="text-gray-400 text-center mt-2 text-lg">Your Logistics Emissions & Green Project Partner</p>
+        </div>
+        <div class="flex justify-center mb-0 border-b border-gray-700 flex-wrap">
+            <button id="calculatorTab" class="tab-button active rounded-t-lg py-3 px-5 font-semibold">Emissions Calculator</button>
+            <button id="onboardingTab" class="tab-button inactive rounded-t-lg py-3 px-5 font-semibold">SME Onboarding</button>
+            <button id="projectsTab" class="tab-button inactive rounded-t-lg py-3 px-5 font-semibold">Green Projects</button>
+            <button id="lenderTab" class="tab-button inactive rounded-t-lg py-3 px-5 font-semibold">Lender Portal</button>
+        </div>
+
+        <div id="calculatorContent" class="tab-content">
+            <div id="masterCargoSection" class="space-y-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Master Cargo Details</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-white/50 rounded-lg">
+                    <div>
+                        <label for="masterCargoWeight" class="block text-sm font-medium text-gray-700 mb-1">Total Chargeable Cargo Weight (kg)</label>
+                        <input type="number" id="masterCargoWeight" value="5000" min="1" class="w-full rounded-md shadow-sm p-2 border bg-gray-50 input-field-light" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Temperature Requirement</label>
+                        <div class="flex items-center space-x-3 mt-2">
+                            <span id="tempLabelDry" class="font-bold">Dry</span>
+                            <label class="toggle-switch"><input type="checkbox" id="tempReeferToggle"><span class="slider"></span></label>
+                            <span id="tempLabelReefer">Reefer</span>
+                        </div>
+                    </div>
+                </div>
+                <button id="proceedToShipmentBtn" class="w-full px-6 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 transition">Build Shipment Journey</button>
+            </div>
+            <div id="shipmentDetailsSection" class="space-y-6 hidden">
+                <div class="flex justify-between items-start"><h2 class="text-2xl font-bold text-gray-800 mb-4">Shipment Journey</h2><button id="backToCargoBtn" class="text-sm text-purple-700 font-semibold hover:underline">← Edit Master Cargo</button></div>
+                <div id="cargoSummary" class="bg-gray-50 p-4 rounded-lg border text-sm grid grid-cols-2 md:grid-cols-4 gap-2"></div>
+                <label class="block text-lg font-medium text-gray-800">Add Transport Legs:</label>
+                <div id="modeSelection" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <button data-mode="sea" class="mode-button flex flex-col items-center justify-center p-4 rounded-lg bg-gray-100 border transition hover:bg-purple-50 hover:border-purple-300"><i class="fas fa-ship text-2xl mb-1"></i>Sea</button>
+                    <button data-mode="air" class="mode-button flex flex-col items-center justify-center p-4 rounded-lg bg-gray-100 border transition hover:bg-purple-50 hover:border-purple-300"><i class="fas fa-plane text-2xl mb-1"></i>Air</button>
+                    <button data-mode="road" class="mode-button flex flex-col items-center justify-center p-4 rounded-lg bg-gray-100 border transition hover:bg-purple-50 hover:border-purple-300"><i class="fas fa-truck text-2xl mb-1"></i>Road</button>
+                    <button data-mode="rail" class="mode-button flex flex-col items-center justify-center p-4 rounded-lg bg-gray-100 border transition hover:bg-purple-50 hover:border-purple-300"><i class="fas fa-train text-2xl mb-1"></i>Rail</button>
+                </div>
+                <div id="transportLegsInputContainer" class="space-y-4 border p-4 rounded-lg bg-gray-50 min-h-[80px]"><p id="noLegsMessage" class="text-center text-gray-500">Select a mode and click "Add Leg" to start.</p></div>
+                <button id="addLegBtn" class="w-full md:w-auto px-6 py-2 rounded-xl font-semibold text-gray-800 bg-gray-200 hover:bg-gray-300"><i class="fas fa-plus mr-2"></i>Add Leg</button>
+                <button id="calculateEmissionsBtn" class="w-full mt-4 px-6 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700"><i class="fas fa-calculator mr-2"></i>Calculate Emissions</button>
+            </div>
+            <div id="calculatorResultTableContainer" class="mt-8 p-6 rounded-lg bg-white border shadow-md hidden"></div>
+        </div>
+        
+        <div id="onboardingContent" class="p-6 bg-gray-800 rounded-b-lg hidden">
+            <h2 class="text-2xl font-bold text-teal-300 text-center mb-6">SME Onboarding</h2>
+            <div class="space-y-6 bg-gray-700 p-6 rounded-lg border border-teal-700">
+                <div>
+                    <label for="onboardCompanyName" class="block text-sm font-medium text-gray-300 mb-2">Company Name</label>
+                    <input type="text" id="onboardCompanyName" class="mt-1 block w-full rounded-md shadow-sm input-field" />
+                </div>
+                <div>
+                    <label for="tradeLicense" class="block text-sm font-medium text-gray-300 mb-2">Trade License Number</label>
+                    <input type="text" id="tradeLicense" class="mt-1 block w-full rounded-md shadow-sm input-field" />
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-gray-300 text-sm">Verification Status:</span>
+                    <span id="verificationStatus" class="text-red-400 font-semibold">Pending</span>
+                    <button id="verifyBtn" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded-md transition">Verify</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="projectsContent" class="p-6 bg-gray-800 rounded-b-lg hidden">
+            <p class="text-gray-300 text-center mb-8">Register your green projects and connect with investors.</p>
+            <form id="projectRegistrationForm" class="space-y-6 bg-gray-700 p-6 rounded-lg border border-teal-700" onsubmit="return false;">
+                <h3 class="text-xl font-bold text-teal-300 text-center mb-4">Register Your Project</h3>
+                <div>
+                    <label for="companyName" class="block text-sm font-medium text-gray-300 mb-2">Company Name</label>
+                    <input type="text" id="companyName" class="mt-1 block w-full rounded-md shadow-sm input-field" />
+                </div>
+                <div>
+                    <label for="projectTitle" class="block text-sm font-medium text-gray-300 mb-2">Project Title</label>
+                    <input type="text" id="projectTitle" class="mt-1 block w-full rounded-md shadow-sm input-field" />
+                </div>
+                <div>
+                    <label for="projectDescription" class="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                    <textarea id="projectDescription" rows="3" class="mt-1 block w-full rounded-md shadow-sm input-field"></textarea>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="estimatedReduction" class="block text-sm font-medium text-gray-300 mb-2">Est. Reduction (tCO₂e/yr)</label>
+                        <input type="number" id="estimatedReduction" class="mt-1 block w-full rounded-md shadow-sm input-field" />
+                    </div>
+                    <div>
+                        <label for="fundingRequired" class="block text-sm font-medium text-gray-300 mb-2">Funding Required (AED)</label>
+                        <input type="number" id="fundingRequired" class="mt-1 block w-full rounded-md shadow-sm input-field" />
+                    </div>
+                </div>
+                <button id="submitProjectBtn" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-4 rounded-md shadow-xl transition">Submit</button>
+            </form>
+            <div id="myProjectsSection" class="mt-8">
+                <h3 class="text-xl font-bold text-teal-300 mb-4 text-center">My Registered Projects</h3>
+                <div id="projectList" class="space-y-4"></div>
+                <div id="noProjectsMessage" class="mt-8 text-center text-gray-400"><p>You haven't registered any projects yet.</p></div>
+            </div>
+        </div>
+        
+        <div id="lenderContent" class="p-6 bg-gray-800 rounded-b-lg hidden">
+             <h2 class="text-2xl font-bold text-teal-300 text-center mb-6">Lender Portal</h2>
+            <div class="mb-8">
+                <h3 class="text-xl font-bold text-green-400 mb-4 text-center">Open Projects Seeking Funding</h3>
+                <div id="lenderProjectList" class="space-y-4"></div>
+            </div>
+            <div class="mb-8 bg-gray-700 p-6 rounded-lg border border-blue-700">
+                <h3 class="text-xl font-bold text-blue-400 mb-4 text-center">My Investment Portfolio</h3>
+                <div id="lenderPortfolioList" class="space-y-4"></div>
+            </div>
+            <div class="mb-8 bg-gray-700 p-6 rounded-lg border border-purple-700">
+                <h3 class="text-xl font-bold text-purple-400 mb-4 text-center">Secondary Market</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-lg font-semibold text-purple-300 mb-3">Sell Your Investment</h4>
+                        <div class="mb-4">
+                            <label for="investmentToSell" class="block text-sm font-medium text-gray-300 mb-2">Select Project to Sell</label>
+                            <select id="investmentToSell" class="mt-1 block w-full rounded-md shadow-sm select-field"></select>
+                        </div>
+                        <div class="mb-6">
+                            <label for="askingPrice" class="block text-sm font-medium text-gray-300 mb-2">Asking Price (AED)</label>
+                            <input type="number" id="askingPrice" placeholder="e.g., 250000" class="mt-1 block w-full rounded-md shadow-sm input-field" min="1000" />
+                        </div>
+                        <button id="listForSaleBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition">List for Sale</button>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold text-purple-300 mb-3">Browse Investments for Sale</h4>
+                        <div id="secondaryListings" class="space-y-3 max-h-48 overflow-y-auto">
+                            <p class="text-sm text-gray-400 text-center">No investments currently listed for sale.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="dealRoomModal" class="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 hidden">
+        <div class="bg-gray-800 text-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <div class="p-5 border-b border-gray-700 flex justify-between items-center">
+                <h3 id="modalProjectTitle" class="text-2xl font-bold text-teal-400"></h3>
+                <button id="closeModalBtn" class="text-gray-400 text-3xl hover:text-white">&times;</button>
+            </div>
+            <div class="p-5 overflow-y-auto">
+                <p id="modalProjectDescription" class="mb-4 text-gray-300"></p>
+                <div class="grid grid-cols-3 gap-4 text-center mb-6">
+                    <div><div class="text-sm text-gray-400">Funding Goal</div><div id="modalFundingGoal" class="text-xl font-bold"></div></div>
+                    <div><div class="text-sm text-gray-400">Est. Reduction</div><div id="modalCarbonReduction" class="text-xl font-bold"></div></div>
+                    <div><div class="text-sm text-gray-400">Simulated Risk</div><div id="modalRiskScore" class="text-xl font-bold text-yellow-400"></div></div>
+                </div>
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <label for="investmentSlider" class="block text-lg font-semibold mb-2 text-center">Commit Investment</label>
+                    <input type="range" id="investmentSlider" min="5000" step="1000" class="w-full h-2 bg-gray-600 rounded-lg cursor-pointer">
+                    <div class="text-center mt-2 text-xl font-bold text-green-400"><span>AED </span><span id="investmentValue"></span></div>
+                </div>
+            </div>
+            <div class="p-5 border-t border-gray-700"><button id="commitInvestmentBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition">Commit Investment</button></div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- DATA & STATE ---
+    let masterCargoState = { weightKg: 5000, tempType: 'Dry' };
+    let shipmentLegsData = [];
+    let currentTransportMode = null;
+    let projects = [];
+    let lenderMockProjects = [
+        { id: 'mock1', company: 'GreenFleet Logistics Inc.', title: 'Electric Last Mile Delivery', description: 'Funding for 10 new electric vans.', estimatedReduction: 75, fundingRequired: 180000, status: 'Seeking Funding' },
+        { id: 'mock2', company: 'Desert Storage Solutions', title: 'Warehouse Solar Roof', description: 'Installation of a 50kW solar array.', estimatedReduction: 150, fundingRequired: 300000, status: 'Seeking Funding' }
+    ];
+    let lenderPortfolio = [
+        { id: 'funded1', projectName: 'EV Fleet Conversion', originalValue: 250000, progress: 60 },
+        { id: 'funded2', projectName: 'Green Logistics Hub', originalValue: 700000, progress: 25 },
+    ];
+    let secondaryMarketListings = [];
+    let activeProjectForInvestment = null;
+    const airCargoContainers = { AKE: { tareWeight: 80, maxPayload: 1508 }, AMF: { tareWeight: 340, maxPayload: 6464 }, PMC: { tareWeight: 120, maxPayload: 6684 }, PAG: { tareWeight: 82, maxPayload: 5951 }, AAP: { tareWeight: 190, maxPayload: 5843 } };
+    const seaContainers = { '20ft': { tareWeight: 2200, maxPayload: 25000 }, '40ft': { tareWeight: 3750, maxPayload: 26500 }, '40ft_hc': { tareWeight: 3900, maxPayload: 26500 } };
+    const emissionFactors = { sea: { dry: 0.025, reefer: 0.060 }, air: { dry: 0.61, reefer: 0.9 }, road: { dry: 0.09, reefer: 0.12 }, rail: { dry: 0.02, reefer: 0.035 } };
+
+    // --- DOM ELEMENTS ---
+    const messageBox = document.getElementById('messageBox');
+    const tabs = { calculator: document.getElementById('calculatorContent'), onboarding: document.getElementById('onboardingContent'), projects: document.getElementById('projectsContent'), lender: document.getElementById('lenderContent') };
+    const tabButtons = { calculator: document.getElementById('calculatorTab'), onboarding: document.getElementById('onboardingTab'), projects: document.getElementById('projectsTab'), lender: document.getElementById('lenderTab') };
+    const masterCargoSection = document.getElementById('masterCargoSection');
+    const shipmentDetailsSection = document.getElementById('shipmentDetailsSection');
+    const transportLegsInputContainer = document.getElementById('transportLegsInputContainer');
+    const calculatorResultTableContainer = document.getElementById('calculatorResultTableContainer');
+    const projectRegistrationForm = document.getElementById('projectRegistrationForm');
+    const projectList = document.getElementById('projectList');
+    const noProjectsMessage = document.getElementById('noProjectsMessage');
+    const lenderProjectList = document.getElementById('lenderProjectList');
+    const dealRoomModal = document.getElementById('dealRoomModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const commitInvestmentBtn = document.getElementById('commitInvestmentBtn');
+    const investmentSlider = document.getElementById('investmentSlider');
+    const investmentValue = document.getElementById('investmentValue');
+    const investmentToSellSelect = document.getElementById('investmentToSell');
+    const askingPriceInput = document.getElementById('askingPrice');
+    const listForSaleBtn = document.getElementById('listForSaleBtn');
+    const secondaryListingsContainer = document.getElementById('secondaryListings');
+    const lenderPortfolioContainer = document.getElementById('lenderPortfolioList');
+
+    // --- UTILITY ---
+    const showMessage = (message, type = 'success') => {
+        messageBox.textContent = message;
+        messageBox.style.backgroundColor = type === 'error' ? '#dc2626' : (type === 'info' ? '#3b82f6' : '#38b2ac');
+        messageBox.classList.add('show');
+        setTimeout(() => messageBox.classList.remove('show'), 3500);
+    };
+
+    // --- CORE APP LOGIC ---
+    const activateTab = (tabName) => {
+        Object.keys(tabs).forEach(key => {
+            tabs[key].classList.add('hidden');
+            tabButtons[key].classList.replace('active', 'inactive');
+        });
+        tabs[tabName].classList.remove('hidden');
+        tabButtons[tabName].classList.replace('inactive', 'active');
+    };
+
+    // --- CALCULATOR LOGIC ---
+    const setupCalculatorListeners = () => {
+        document.getElementById('proceedToShipmentBtn').addEventListener('click', () => {
+            const weightInput = document.getElementById('masterCargoWeight');
+            const weightKg = parseFloat(weightInput.value);
+            if (isNaN(weightKg) || weightKg <= 0) { showMessage('Please enter a valid cargo weight.', 'error'); weightInput.classList.add('input-error'); return; }
+            weightInput.classList.remove('input-error');
+            masterCargoState.weightKg = weightKg;
+            masterCargoState.tempType = document.getElementById('tempReeferToggle').checked ? 'Reefer' : 'Dry';
+            document.getElementById('cargoSummary').innerHTML = `<p><strong>Total Cargo:</strong> ${(masterCargoState.weightKg / 1000).toFixed(2)} MT</p><p><strong>Temp:</strong> ${masterCargoState.tempType}</p>`;
+            masterCargoSection.classList.add('hidden');
+            shipmentDetailsSection.classList.remove('hidden');
+            calculatorResultTableContainer.classList.add('hidden');
+        });
+        document.getElementById('backToCargoBtn').addEventListener('click', () => {
+            shipmentDetailsSection.classList.add('hidden');
+            masterCargoSection.classList.remove('hidden');
+            calculatorResultTableContainer.classList.add('hidden');
+            shipmentLegsData = [];
+            transportLegsInputContainer.innerHTML = `<p id="noLegsMessage" class="text-center text-gray-500">Select a mode and click "Add Leg".</p>`;
+        });
+        document.querySelectorAll('#modeSelection .mode-button').forEach(b => b.addEventListener('click', () => {
+            document.querySelectorAll('#modeSelection .mode-button').forEach(btn => btn.classList.remove('bg-purple-100', 'border-purple-400'));
+            b.classList.add('bg-purple-100', 'border-purple-400');
+            currentTransportMode = b.dataset.mode;
+        }));
+        document.getElementById('addLegBtn').addEventListener('click', () => {
+            if (!currentTransportMode) { showMessage('Please select a transport mode first.', 'error'); return; }
+            const noLegsMessage = document.getElementById('noLegsMessage');
+            if (noLegsMessage) noLegsMessage.style.display = 'none';
+            addTransportLegInput(currentTransportMode);
+        });
+        document.getElementById('calculateEmissionsBtn').addEventListener('click', calculateEmissions);
+    };
+    const addTransportLegInput = (mode) => {
+        const legId = `leg-${Date.now()}`;
+        shipmentLegsData.push({ id: legId, mode });
+        let legHtml = `<div id="${legId}" class="transport-leg p-4 bg-white rounded-lg shadow-sm border relative mb-4" data-leg-id="${legId}"><button class="absolute top-2 right-2 text-red-500 hover:text-red-700 remove-leg-btn text-xl font-bold">&times;</button><h5 class="font-semibold text-gray-800 mb-3">${mode.toUpperCase()} LEG #${shipmentLegsData.length}</h5><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div><label class="block text-sm font-medium text-gray-600 mb-1">Origin</label><input class="origin-input w-full p-2 border rounded bg-gray-50 input-field-light" value="${mode === 'air' ? 'DXB' : 'Jebel Ali'}"></div><div><label class="block text-sm font-medium text-gray-600 mb-1">Destination</label><input class="dest-input w-full p-2 border rounded bg-gray-50 input-field-light" value="${mode === 'air' ? 'Riyadh' : 'Shanghai'}"></div><div><label class="block text-sm font-medium text-gray-600 mb-1">Distance (km)</label><input type="number" class="distance-input w-full p-2 border rounded bg-gray-50 input-field-light" value="500"></div></div>`;
+        if (mode === 'sea' || mode === 'air') {
+            const containerDb = mode === 'sea' ? seaContainers : airCargoContainers;
+            const options = Object.keys(containerDb).map(key => `<option value="${key}">${key.toUpperCase()}</option>`).join('');
+            legHtml += `<div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-end"><div><label class="block text-sm font-medium text-gray-600 mb-1">${mode === 'sea' ? 'Container' : 'ULD'} Type</label><select class="leg-container-type w-full p-2 border rounded bg-gray-50 select-field-light">${options}</select></div><div><label class="block text-sm font-medium text-gray-600 mb-1">Number of Units</label><input type="number" value="1" min="1" class="leg-container-quantity w-full p-2 border rounded bg-gray-50 input-field-light"></div><div><p class="leg-weight-info text-sm text-gray-600"></p><p class="leg-weight-warning weight-warning"></p></div></div>`;
+        }
+        legHtml += '</div>';
+        transportLegsInputContainer.insertAdjacentHTML('beforeend', legHtml);
+        attachLegListeners(legId);
+        // POLISHED: Auto-scroll to the new leg
+        document.getElementById(legId).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+    const attachLegListeners = (legId) => {
+        const legElement = document.getElementById(legId);
+        legElement.querySelector('.remove-leg-btn').addEventListener('click', () => {
+            shipmentLegsData = shipmentLegsData.filter(l => l.id !== legId);
+            legElement.remove();
+            if (shipmentLegsData.length === 0) {
+                const noLegsMessage = document.getElementById('noLegsMessage');
+                if(noLegsMessage) noLegsMessage.style.display = 'block';
+            }
+        });
+        const inputsToWatch = legElement.querySelectorAll('.leg-container-type, .leg-container-quantity');
+        inputsToWatch.forEach(input => input.addEventListener('input', () => validateLegWeight(legElement)));
+        validateLegWeight(legElement);
+    };
+    const validateLegWeight = (legElement) => {
+        if (!legElement) return;
+        const leg = shipmentLegsData.find(l => l.id === legElement.dataset.legId);
+        if (!leg || (leg.mode !== 'sea' && leg.mode !== 'air')) return;
+        const typeSelect = legElement.querySelector('.leg-container-type');
+        const quantityInput = legElement.querySelector('.leg-container-quantity');
+        const infoEl = legElement.querySelector('.leg-weight-info');
+        const warningEl = legElement.querySelector('.leg-weight-warning');
+        if (!typeSelect || !quantityInput || !infoEl || !warningEl) return;
+        const containerDb = leg.mode === 'sea' ? seaContainers : airCargoContainers;
+        const selectedType = typeSelect.value;
+        const quantity = parseInt(quantityInput.value) || 0;
+        if (quantity <= 0) { infoEl.textContent = ''; warningEl.textContent = ''; return; }
+        const maxPayload = containerDb[selectedType].maxPayload;
+        const cargoPerUnit = masterCargoState.weightKg / quantity;
+        infoEl.textContent = `Cargo/Unit: ${cargoPerUnit.toFixed(0)} kg`;
+        warningEl.textContent = cargoPerUnit > maxPayload ? `Exceeds max payload of ${maxPayload} kg!` : '';
+        quantityInput.classList.toggle('input-error', cargoPerUnit > maxPayload);
+    };
+
+    const calculateEmissions = () => {
+        let allLegsValid = true;
+        let resultsData = [];
+        document.querySelectorAll('.transport-leg').forEach((el, i) => {
+            if (el.querySelector('.input-error')) { allLegsValid = false; showMessage(`Weight limit exceeded on Leg #${i+1}.`, 'error'); }
+            const distInput = el.querySelector('.distance-input');
+            if(!distInput.value || parseFloat(distInput.value) <= 0) { allLegsValid = false; showMessage(`Invalid details for Leg #${i+1}.`, 'error'); distInput.classList.add('input-error');}
+            else { distInput.classList.remove('input-error'); }
+        });
+        if (!allLegsValid || shipmentLegsData.length === 0) { if (shipmentLegsData.length === 0) showMessage('Please add at least one leg.', 'error'); return; }
+        
+        shipmentLegsData.forEach((leg, index) => {
+            const el = document.getElementById(leg.id);
+            const distance = parseFloat(el.querySelector('.distance-input').value);
+            const factor = emissionFactors[leg.mode][masterCargoState.tempType.toLowerCase()];
+            let weightForCalcTonnes = masterCargoState.weightKg / 1000;
+            if (leg.mode === 'sea' || leg.mode === 'air') {
+                const type = el.querySelector('.leg-container-type').value;
+                const quantity = parseInt(el.querySelector('.leg-container-quantity').value);
+                const db = leg.mode === 'sea' ? seaContainers : airCargoContainers;
+                weightForCalcTonnes = (masterCargoState.weightKg + (db[type].tareWeight * quantity)) / 1000;
+            }
+            resultsData.push({ legNum: index + 1, mode: leg.mode, route: `${el.querySelector('.origin-input').value} → ${el.querySelector('.dest-input').value}`, distance, co2e: weightForCalcTonnes * distance * factor, factor });
+        });
+
+        let totalCO2e = 0, totalReduction = 0, totalNewEmission = 0;
+        let tableBodyHtml = resultsData.map(res => {
+            const reduction = res.co2e * 0.10;
+            const newEmission = res.co2e - reduction;
+            totalCO2e += res.co2e;
+            totalReduction += reduction;
+            totalNewEmission += newEmission;
+            return `<tr class="border-b hover:bg-gray-50">
+                        <td class="py-3 px-4">${res.legNum}</td>
+                        <td class="py-3 px-4">${res.mode.toUpperCase()}</td>
+                        <td class="py-3 px-4">${res.route}</td>
+                        <td class="py-3 px-4 text-right">${res.distance}</td>
+                        <td class="py-3 px-4 text-right">${res.factor.toFixed(4)}</td>
+                        <td class="py-3 px-4 text-right font-semibold">${res.co2e.toFixed(2)}</td>
+                        <td class="py-3 px-4 text-right text-green-600">${reduction.toFixed(2)}</td>
+                        <td class="py-3 px-4 text-right text-blue-600 font-semibold">${newEmission.toFixed(2)}</td>
+                    </tr>`;
+        }).join('');
+        
+        calculatorResultTableContainer.innerHTML = `
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Emissions Summary</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead><tr class="bg-gray-200 text-gray-600 uppercase text-xs">
+                        <th class="py-3 px-4 text-left">Leg</th>
+                        <th class="py-3 px-4 text-left">Mode</th>
+                        <th class="py-3 px-4 text-left">Route</th>
+                        <th class="py-3 px-4 text-right">Distance (km)</th>
+                        <th class="py-3 px-4 text-right">kgCO₂e/t-km</th>
+                        <th class="py-3 px-4 text-right">Total kgCO₂e</th>
+                        <th class="py-3 px-4 text-right text-green-600">Potential Reduction</th>
+                        <th class="py-3 px-4 text-right text-blue-600">New Emission</th>
+                    </tr></thead>
+                    <tbody class="text-gray-700">${tableBodyHtml}</tbody>
+                    <tfoot><tr class="bg-gray-200 font-bold border-t-2">
+                        <td colspan="5" class="py-3 px-4 text-right">TOTALS</td>
+                        <td class="py-3 px-4 text-right">${totalCO2e.toFixed(2)}</td>
+                        <td class="py-3 px-4 text-right text-green-600">${totalReduction.toFixed(2)}</td>
+                        <td class="py-3 px-4 text-right text-blue-600">${totalNewEmission.toFixed(2)}</td>
+                    </tr></tfoot>
+                </table>
+            </div>
+            <div class="mt-8 text-left">
+                <button id="biofuelSolutionBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition">Explore Biofuel Solution (Conceptual)</button>
+                <button id="callToActionProjectBtn" class="ml-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition">Explore Decarbonisation Projects</button>
+            </div>
+            <p class="text-xs text-gray-600 mt-4"><strong class="text-purple-600">Note:</strong> These are simplified calculations based on assumed factors. ChopChop's full platform adheres strictly to Global Logistics Emissions Council (GLEC) frameworks for comprehensive Tank-to-Wheel (TTW) and Well-to-Tank (WTT) calculations.</p>`;
+            
+        calculatorResultTableContainer.classList.remove('hidden');
+        calculatorResultTableContainer.querySelector('#biofuelSolutionBtn').addEventListener('click', () => showMessage('Conceptual: Exploring biofuel options...', 'info'));
+        calculatorResultTableContainer.querySelector('#callToActionProjectBtn').addEventListener('click', () => activateTab('projects'));
+        showMessage('Calculation successful!', 'success');
+    };
+
+    // --- OTHER TABS LOGIC ---
+    const setupOtherTabs = () => {
+        document.getElementById('verifyBtn').addEventListener('click', () => {
+            if (document.getElementById('onboardCompanyName').value && document.getElementById('tradeLicense').value) {
+                document.getElementById('verificationStatus').textContent = 'Verified';
+                document.getElementById('verificationStatus').classList.replace('text-red-400', 'text-green-400');
+                showMessage('Company verified!', 'success');
+            } else { showMessage('Please fill all fields.', 'error'); }
+        });
+        projectRegistrationForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newProject = { id: `proj-${Date.now()}`, company: document.getElementById('companyName').value, title: document.getElementById('projectTitle').value, description: document.getElementById('projectDescription').value, estimatedReduction: parseFloat(document.getElementById('estimatedReduction').value), fundingRequired: parseFloat(document.getElementById('fundingRequired').value), status: 'Seeking Funding' };
+            if (!newProject.company || !newProject.title || isNaN(newProject.fundingRequired)) { showMessage('Please fill all project fields.', 'error'); return; }
+            projects.push(newProject);
+            projectRegistrationForm.reset();
+            renderAllProjects();
+            showMessage('Project submitted!', 'success');
+        });
+        closeModalBtn.addEventListener('click', () => dealRoomModal.classList.add('hidden'));
+        commitInvestmentBtn.addEventListener('click', () => {
+            const investment = { ...activeProjectForInvestment, id: `funded-${Date.now()}`, projectName: activeProjectForInvestment.title, originalValue: activeProjectForInvestment.fundingRequired, progress: 0 };
+            lenderPortfolio.push(investment);
+            lenderMockProjects = lenderMockProjects.filter(p => p.id !== activeProjectForInvestment.id);
+            projects = projects.filter(p => p.id !== activeProjectForInvestment.id);
+            renderAllProjects();
+            renderLenderPortfolio();
+            populatePortfolioDropdown();
+            showMessage(`Committed to "${activeProjectForInvestment.title}"!`, 'success');
+            dealRoomModal.classList.add('hidden');
+        });
+        investmentSlider.addEventListener('input', (e) => { investmentValue.textContent = parseInt(e.target.value).toLocaleString(); });
+        listForSaleBtn.addEventListener('click', () => {
+            const selectedProjectId = investmentToSellSelect.value;
+            const price = parseFloat(askingPriceInput.value);
+            if (!selectedProjectId || isNaN(price) || price <= 0) { showMessage('Please select a project and enter a valid asking price.', 'error'); return; }
+            const projectToSell = lenderPortfolio.find(p => p.id === selectedProjectId);
+            const newListing = { listingId: `listing-${Date.now()}`, ...projectToSell, askingPrice: price };
+            secondaryMarketListings.push(newListing);
+            renderSecondaryMarket();
+            askingPriceInput.value = '';
+            showMessage(`${projectToSell.projectName} listed for sale!`, 'success');
+        });
+    };
+    const renderAllProjects = () => {
+        projectList.innerHTML = '';
+        lenderProjectList.innerHTML = '';
+        noProjectsMessage.style.display = projects.length === 0 ? 'block' : 'none';
+        projects.forEach(p => projectList.insertAdjacentHTML('beforeend', createProjectCard(p, 'sme')));
+        [...lenderMockProjects, ...projects].forEach(p => lenderProjectList.insertAdjacentHTML('beforeend', createProjectCard(p, 'lender')));
+        attachProjectCardListeners();
+    };
+    const createProjectCard = (project, view) => {
+        return `<div class="project-card bg-gray-800 p-5 rounded-lg border border-teal-800 hover:border-teal-500 transition ${view === 'lender' ? 'cursor-pointer' : ''}" data-project-id="${project.id}"><div class="flex justify-between items-start mb-2"><div><h4 class="text-xl font-semibold text-green-400">${project.title}</h4><p class="text-sm text-gray-400">${project.company}</p></div><span class="px-3 py-1 rounded-full text-xs font-semibold bg-orange-600 text-white">${project.status}</span></div><p class="text-gray-300 mb-3 text-sm">${project.description}</p><div class="grid grid-cols-2 gap-2 text-sm text-gray-400"><p><strong>Reduction:</strong> ${project.estimatedReduction.toLocaleString()} tCO₂e/yr</p><p><strong>Funding:</strong> AED ${project.fundingRequired.toLocaleString()}</p></div></div>`;
+    };
+    const attachProjectCardListeners = () => {
+        lenderProjectList.querySelectorAll('.project-card').forEach(card => {
+            const newCard = card.cloneNode(true);
+            card.parentNode.replaceChild(newCard, card);
+            newCard.addEventListener('click', () => openDealRoom(newCard.dataset.projectId));
+        });
+    };
+    const openDealRoom = (projectId) => {
+        activeProjectForInvestment = [...lenderMockProjects, ...projects].find(p => p.id === projectId);
+        if (!activeProjectForInvestment) return;
+        document.getElementById('modalProjectTitle').textContent = activeProjectForInvestment.title;
+        document.getElementById('modalProjectDescription').textContent = activeProjectForInvestment.description;
+        document.getElementById('modalFundingGoal').textContent = `AED ${activeProjectForInvestment.fundingRequired.toLocaleString()}`;
+        document.getElementById('modalCarbonReduction').textContent = `${activeProjectForInvestment.estimatedReduction.toLocaleString()} tCO₂e`;
+        document.getElementById('modalRiskScore').textContent = ['Low', 'Medium', 'High'][Math.floor(Math.random() * 3)];
+        investmentSlider.max = activeProjectForInvestment.fundingRequired;
+        investmentSlider.value = Math.min(50000, activeProjectForInvestment.fundingRequired);
+        investmentValue.textContent = parseInt(investmentSlider.value).toLocaleString();
+        dealRoomModal.classList.remove('hidden');
+    };
+    const renderLenderPortfolio = () => {
+        lenderPortfolioContainer.innerHTML = '';
+        if (lenderPortfolio.length === 0) { lenderPortfolioContainer.innerHTML = '<p class="text-sm text-gray-400 text-center">Your portfolio is empty.</p>'; }
+        lenderPortfolio.forEach(item => {
+            const itemHtml = `<div class="bg-gray-900 p-4 rounded-lg border border-blue-800"><h4 class="text-lg font-semibold text-blue-300">${item.projectName}</h4><div class="w-full bg-gray-600 rounded-full h-2.5 mt-2"><div class="bg-blue-600 h-2.5 rounded-full" style="width: ${item.progress}%"></div></div></div>`;
+            lenderPortfolioContainer.insertAdjacentHTML('beforeend', itemHtml);
+        });
+    };
+    const populatePortfolioDropdown = () => {
+        // POLISHED: Handle empty portfolio state
+        if (lenderPortfolio.length === 0) {
+            investmentToSellSelect.innerHTML = '<option value="">No investments in portfolio</option>';
+            investmentToSellSelect.disabled = true;
+            listForSaleBtn.disabled = true;
+            return;
+        }
+        investmentToSellSelect.disabled = false;
+        listForSaleBtn.disabled = false;
+        investmentToSellSelect.innerHTML = '<option value="">-- Select Project --</option>';
+        lenderPortfolio.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = `${item.projectName} (Value: AED ${item.originalValue.toLocaleString()})`;
+            investmentToSellSelect.appendChild(option);
+        });
+    };
+    const renderSecondaryMarket = () => {
+        secondaryListingsContainer.innerHTML = '';
+        if (secondaryMarketListings.length === 0) { secondaryListingsContainer.innerHTML = '<p class="text-sm text-gray-400 text-center">No investments currently listed for sale.</p>'; return; }
+        secondaryMarketListings.forEach(listing => {
+            const listingHtml = `<div class="bg-gray-800 p-4 rounded-lg border border-purple-800"><h5 class="text-md font-semibold text-purple-300">${listing.projectName}</h5><p class="text-xs text-gray-400">Asking: AED ${listing.askingPrice.toLocaleString()}</p><button class="buy-investment-btn mt-2 bg-purple-700 hover:bg-purple-800 text-white text-xs px-3 py-1 rounded-md transition" data-listing-id="${listing.listingId}">Buy Now</button></div>`;
+            secondaryListingsContainer.insertAdjacentHTML('beforeend', listingHtml);
+        });
+        document.querySelectorAll('.buy-investment-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const listingId = e.target.dataset.listingId;
+                const boughtListing = secondaryMarketListings.find(l => l.listingId === listingId);
+                secondaryMarketListings = secondaryMarketListings.filter(l => l.listingId !== listingId);
+                lenderPortfolio.push({ ...boughtListing, id: `funded-${Date.now()}` });
+                renderSecondaryMarket(); renderLenderPortfolio(); populatePortfolioDropdown();
+                showMessage(`Successfully purchased investment in ${boughtListing.projectName}!`, 'success');
+            });
+        });
+    };
+
+    // --- APP INITIALIZATION ---
+    Object.keys(tabButtons).forEach(key => tabButtons[key].addEventListener('click', () => activateTab(key)));
+    setupCalculatorListeners();
+    setupOtherTabs();
+    renderAllProjects();
+    renderLenderPortfolio();
+    populatePortfolioDropdown();
+    renderSecondaryMarket();
+    activateTab('calculator');
+});
+</script>
+</body>
+</html>
